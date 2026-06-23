@@ -858,7 +858,7 @@
       bellAudio3: document.getElementById("bellAudio3")
     };
 
-    const STORAGE_KEY = "seminarBellTimerSettings_v7";
+    const STORAGE_KEY = "seminarBellTimerSettings_v8";
     let audioCtx = null;
     let running = false;
     let startedAt = 0;
@@ -1161,7 +1161,7 @@
             audio.volume = 1;
             await audio.play();
           } catch {
-            // Fall back to Web Audio below.
+            // iPhone側でブロックされた場合は無音になる. ベル音テストをもう一度押す.
           }
         }, i * 950);
 
@@ -1174,43 +1174,8 @@
     async function playBell(count = 1) {
       const safeCount = Math.min(5, Math.max(1, count));
 
-      // First choice: actual embedded WAV audio. This is more reliable on iPhone/PWA than oscillator-only Web Audio.
+      // MP3ベルだけを鳴らす. 古いWeb Audio電子音は混ざらないように完全に使わない.
       await playBellWithAudioElement(safeCount);
-
-      // Backup: Web Audio oscillator, useful on browsers where the audio element is blocked or delayed.
-      try {
-        const ready = await ensureAudio();
-        if (ready) {
-          const now = audioCtx.currentTime;
-          const master = audioCtx.createGain();
-          master.connect(audioCtx.destination);
-
-          const pattern = Array.from({ length: safeCount }, (_, i) => i * 0.42);
-
-          pattern.forEach(offset => {
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-
-            osc.type = "sine";
-            osc.frequency.setValueAtTime(860, now + offset);
-            osc.frequency.exponentialRampToValueAtTime(520, now + offset + 0.32);
-
-            gain.gain.setValueAtTime(0.0001, now + offset);
-            gain.gain.exponentialRampToValueAtTime(0.55, now + offset + 0.015);
-            gain.gain.exponentialRampToValueAtTime(0.0001, now + offset + 0.34);
-
-            osc.connect(gain);
-            gain.connect(master);
-            osc.start(now + offset);
-            osc.stop(now + offset + 0.36);
-          });
-
-          master.gain.setValueAtTime(0.55, now);
-          master.gain.exponentialRampToValueAtTime(0.0001, now + pattern[pattern.length - 1] + 0.58);
-        }
-      } catch {
-        // Ignore oscillator fallback failures.
-      }
 
       const s = getSettings();
       if (s.vibration && "vibrate" in navigator) {
@@ -1325,8 +1290,6 @@
     }
 
     async function toggleStartPause() {
-      await unlockAudioElements();
-      await ensureAudio();
       if (running) {
         pause();
       } else {
@@ -1379,7 +1342,6 @@
 
     els.testBtn.addEventListener("click", async () => {
       await unlockAudioElements();
-      await ensureAudio();
       await playBell(3);
     });
 
