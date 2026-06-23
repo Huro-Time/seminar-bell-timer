@@ -1,0 +1,19 @@
+{
+  "name": "ゼミ予鈴タイマー",
+  "short_name": "ゼミ予鈴",
+  "description": "ゼミ発表用の1鈴, 2鈴, 3鈴タイマー",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f3f4f6",
+  "theme_color": "#111827",
+  "icons": [
+    {
+      "src": "./icon.png",
+      "sizes": "1024x1024",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
