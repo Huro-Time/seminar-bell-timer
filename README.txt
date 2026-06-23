@@ -1,20 +1,14 @@
-# ゼミ予鈴タイマー PWA版 v5
+# ゼミ予鈴タイマー PWA版 v6
 
-## 緊急修正内容
+## 更新内容
 
-- iPhone/PWAでベル音が鳴らない問題への対策
-- Web Audioの電子音だけでなく, 埋め込みWAV音声を使う方式に変更
-- ベル音テストのタップ時に音声再生を明示的にアンロック
-- 従来のWeb Audio電子音はバックアップとして残存
-- Service Workerのキャッシュ名を seminar-bell-timer-v5 に更新
-
-## v4から継続している機能
-
-- スマホ横画面の全画面表示最適化
-- 発表時間の自由指定
-- 1鈴, 2鈴, 3鈴の個別設定
-- 0.5分単位のベル指定
-- ホーム画面PWA対応
+- ベル音を添付MP3「呼び出しベル.mp3」ベースに変更
+- 音声ファイルを bell.mp3 として同梱
+- アプリ側は bell.mp3 を再生
+- 1鈴, 2鈴, 3鈴は同じベル音を1回, 2回, 3回鳴らす
+- ベルの連続再生間隔を約0.95秒に調整
+- Service Workerのキャッシュ名を seminar-bell-timer-v6 に更新
+- bell.mp3 もオフラインキャッシュ対象に追加
 
 ## ファイル構成
 
@@ -22,6 +16,7 @@
 - manifest.webmanifest
 - service-worker.js
 - icon.png
+- bell.mp3
 - README.txt
 
 ## GitHub Pagesでの更新方法
@@ -32,16 +27,16 @@
 - manifest.webmanifest
 - service-worker.js
 - icon.png
+- bell.mp3
 - README.txt
 
-特に重要なのは index.html と service-worker.js です.
+今回の更新では bell.mp3 が新規追加されています.
+必ず bell.mp3 もリポジトリ直下にアップロードしてください.
 
-## 音が鳴らない場合
+## 音が古いままの場合
 
-1. アップロード後, GitHub PagesのDeploymentsが緑チェックになるまで待つ
+1. GitHub PagesのDeploymentsが緑チェックになるまで待つ
 2. Safariで公開URLを直接開いて再読み込みする
 3. ベル音テストを押す
-4. 音量ボタンでメディア音量を上げる
-5. Bluetoothイヤホン等に音が飛んでいないか確認する
-6. ホーム画面アプリを完全終了して開き直す
-7. それでも古い画面なら, ホーム画面アイコンを削除して追加し直す
+4. ホーム画面アプリを完全終了して開き直す
+5. それでも古い場合は, ホーム画面アイコンを削除して追加し直す

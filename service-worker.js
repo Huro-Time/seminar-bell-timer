@@ -1,10 +1,11 @@
-const CACHE_NAME = "seminar-bell-timer-v5";
+const CACHE_NAME = "seminar-bell-timer-v6";
 const ASSETS = [
   "./",
   "./index.html",
   "./manifest.webmanifest",
   "./service-worker.js",
-  "./icon.png"
+  "./icon.png",
+  "./bell.mp3"
 ];
 
 self.addEventListener("install", event => {
