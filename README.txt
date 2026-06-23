@@ -1,6 +1,12 @@
-# ゼミ予鈴タイマー PWA版
+# ゼミ予鈴タイマー PWA版 v3
 
-1鈴, 2鈴, 3鈴を任意の時間に鳴らせるゼミ発表用タイマーです.
+## 更新内容
+
+- 発表時間を時間, 分, 秒で自由に指定可能
+- ベル時間を0.5分単位で指定可能
+- タイマー部の全画面表示を追加
+- 30分発表プリセットを追加
+- Service Workerのキャッシュ名を seminar-bell-timer-v3 に更新
 
 ## ファイル構成
 
@@ -8,27 +14,21 @@
 - manifest.webmanifest
 - service-worker.js
 - icon.png
+- README.txt
 
-## アイコンについて
+## GitHub Pagesでの更新方法
 
-ホーム画面用, PWA用, favicon用の参照をすべて icon.png に統一しています.
-icon.png は 1024 x 1024 px の高解像度PNGです.
-端末側が必要なサイズに自動で縮小して使用します.
+既存リポジトリの直下にある以下のファイルを上書きしてください.
 
-## 使い方
+- index.html
+- manifest.webmanifest
+- service-worker.js
+- icon.png
+- README.txt
 
-このフォルダの中身をGitHub Pages, Netlify, Vercelなどで公開してください.
-公開URLをスマホで開くと, ホーム画面に追加できます.
-
-### iPhone
-
-Safariで公開URLを開く.
-共有ボタンから「ホーム画面に追加」を選ぶ.
-
-### Android
-
-Chromeで公開URLを開く.
-メニューから「ホーム画面に追加」または「インストール」を選ぶ.
+通常の機能更新だけなら, index.html と service-worker.js の上書きが最重要です.
+スマホ側で古い画面が残る場合は, ホーム画面アプリを完全に閉じて再起動してください.
+それでも反映されない場合は, ホーム画面アイコンを削除して追加し直してください.
 
 ## 注意
 

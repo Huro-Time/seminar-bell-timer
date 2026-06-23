@@ -1,4 +1,4 @@
-const CACHE_NAME = "seminar-bell-timer-v2";
+const CACHE_NAME = "seminar-bell-timer-v3";
 const ASSETS = [
   "./",
   "./index.html",
