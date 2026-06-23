@@ -678,7 +678,7 @@
     <header>
       <h1>ゼミ予鈴タイマー</h1>
       <p class="lead">1鈴, 2鈴, 3鈴を任意の時間に鳴らせるシンプルなタイマーです. 発表時間は時間, 分, 秒で自由に指定できます.</p>
-      <p id="installState" class="install-note">ホーム画面に追加して使えます.</p>
+      <p id="installState" class="install-note">ホーム画面に追加して使えます. 現在の版: v8 MP3専用</p>
     </header>
 
     <section class="panel timer-panel" aria-label="タイマー表示">
@@ -817,9 +817,9 @@
       </div>
     </div>
   </section>
-  <audio id="bellAudio1" preload="auto" playsinline src="./bell.mp3"></audio>
-  <audio id="bellAudio2" preload="auto" playsinline src="./bell.mp3"></audio>
-  <audio id="bellAudio3" preload="auto" playsinline src="./bell.mp3"></audio>
+  <audio id="bellAudio1" preload="auto" playsinline src="./bell.mp3?v=8"></audio>
+  <audio id="bellAudio2" preload="auto" playsinline src="./bell.mp3?v=8"></audio>
+  <audio id="bellAudio3" preload="auto" playsinline src="./bell.mp3?v=8"></audio>
 <script>
     const els = {
       totalHours: document.getElementById("totalHours"),
@@ -859,7 +859,6 @@
     };
 
     const STORAGE_KEY = "seminarBellTimerSettings_v8";
-    let audioCtx = null;
     let running = false;
     let startedAt = 0;
     let elapsedBeforePause = 0;
@@ -869,13 +868,38 @@
     let fullscreenOverlay = false;
 
     if (window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone) {
-      els.installState.textContent = "ホーム画面アプリとして起動中です.";
+      els.installState.textContent = "ホーム画面アプリとして起動中です. 現在の版: v8 MP3専用";
     }
 
     if ("serviceWorker" in navigator) {
       window.addEventListener("load", () => {
-        navigator.serviceWorker.register("./service-worker.js").catch(() => {
-          els.installState.textContent = "サービスワーカー登録に失敗しました. HTTPSで公開するとオフライン対応が有効になります.";
+        let refreshing = false;
+
+        navigator.serviceWorker.addEventListener("controllerchange", () => {
+          if (refreshing) return;
+          refreshing = true;
+          window.location.reload();
+        });
+
+        navigator.serviceWorker.register("./service-worker.js?v=8").then(registration => {
+          registration.update();
+
+          if (registration.waiting) {
+            registration.waiting.postMessage({ type: "SKIP_WAITING" });
+          }
+
+          registration.addEventListener("updatefound", () => {
+            const newWorker = registration.installing;
+            if (!newWorker) return;
+
+            newWorker.addEventListener("statechange", () => {
+              if (newWorker.state === "installed" && navigator.serviceWorker.controller) {
+                newWorker.postMessage({ type: "SKIP_WAITING" });
+              }
+            });
+          });
+        }).catch(() => {
+          els.installState.textContent = "サービスワーカー登録に失敗しました. 現在の版: v8 MP3専用";
         });
       });
     }
@@ -1110,72 +1134,50 @@
       els.fullscreenStartPauseBtn.textContent = startPauseText;
     }
 
-    async function ensureAudio() {
-      const AudioContext = window.AudioContext || window.webkitAudioContext;
-      if (!AudioContext) return false;
 
-      if (!audioCtx) {
-        audioCtx = new AudioContext();
-      }
-
-      if (audioCtx.state === "suspended") {
-        await audioCtx.resume();
-      }
-
-      return audioCtx.state === "running";
-    }
-
-    async function unlockAudioElements() {
+    function prepareAudioElements() {
       const audioEls = [els.bellAudio1, els.bellAudio2, els.bellAudio3];
 
       for (const audio of audioEls) {
         try {
+          audio.preload = "auto";
           audio.load();
-          audio.muted = true;
-          audio.currentTime = 0;
-          await audio.play();
-          audio.pause();
-          audio.currentTime = 0;
           audio.muted = false;
           audio.volume = 1;
         } catch {
-          audio.muted = false;
-          audio.volume = 1;
+          // Ignore preload failures.
         }
       }
     }
 
-    async function playBellWithAudioElement(count = 1) {
+    function playBellWithAudioElement(count = 1) {
       const safeCount = Math.min(5, Math.max(1, count));
       const audioEls = [els.bellAudio1, els.bellAudio2, els.bellAudio3];
-      let playedAny = false;
 
       for (let i = 0; i < safeCount; i++) {
-        const audio = audioEls[i % audioEls.length];
+        window.setTimeout(() => {
+          const audio = audioEls[i % audioEls.length];
 
-        window.setTimeout(async () => {
           try {
             audio.pause();
             audio.currentTime = 0;
             audio.muted = false;
             audio.volume = 1;
-            await audio.play();
+            audio.play().catch(() => {
+              // If blocked by iOS, press Bell Test once on this screen.
+            });
           } catch {
-            // iPhone側でブロックされた場合は無音になる. ベル音テストをもう一度押す.
+            // Ignore playback failure.
           }
         }, i * 950);
-
-        playedAny = true;
       }
-
-      return playedAny;
     }
 
-    async function playBell(count = 1) {
+    function playBell(count = 1) {
       const safeCount = Math.min(5, Math.max(1, count));
 
-      // MP3ベルだけを鳴らす. 古いWeb Audio電子音は混ざらないように完全に使わない.
-      await playBellWithAudioElement(safeCount);
+      // MP3ベルだけを再生する. Web Audio電子音は完全に使わない.
+      playBellWithAudioElement(safeCount);
 
       const s = getSettings();
       if (s.vibration && "vibrate" in navigator) {
@@ -1340,9 +1342,9 @@
     els.resetBtn.addEventListener("click", reset);
     els.fullscreenResetBtn.addEventListener("click", reset);
 
-    els.testBtn.addEventListener("click", async () => {
-      await unlockAudioElements();
-      await playBell(3);
+    els.testBtn.addEventListener("click", () => {
+      prepareAudioElements();
+      playBell(1);
     });
 
     els.fullscreenBtn.addEventListener("click", enterFullscreenMode);
